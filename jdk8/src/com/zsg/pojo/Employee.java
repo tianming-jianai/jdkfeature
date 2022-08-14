@@ -12,11 +12,25 @@ import lombok.NoArgsConstructor;
  * @Description:
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class Employee {
-    private Integer id;
+    private int id;
     private String name;
-    private Integer age;
-    private Integer salary;
+    private int age;
+    private double salary;
+
+    public Employee() {
+        System.out.println("Employee NoArgsConstructor ...");
+    }
+
+    public Employee(Integer id) {
+        this.id = id;
+        System.out.println("Employee(int id) ...");
+    }
+
+    public Employee(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+        System.out.println("Employee(int id, String name) ...");
+    }
 }
