@@ -79,6 +79,22 @@ public class MethodRefTest {
         BiFunction<String, Integer, Person> fun2 = Person::new;
         System.out.println(fun2.apply("tom", 18));
     }
+
+    /**
+     * 数组::new 引用数组构造器
+     */
+    @Test
+    public void test5() {
+        Function<Integer, String[]> fun = len -> {
+            return new String[len];
+        };
+        String[] arr1 = fun.apply(10);
+        System.out.println(arr1 + "， " + arr1.length);
+
+        Function<Integer, String[]> fun2 = String[]::new;
+        String[] arr2 = fun2.apply(5);
+        System.out.println(arr2 + "， " + arr2.length);
+    }
 }
 
 class Person {
@@ -118,19 +134,4 @@ class Person {
                 '}';
     }
 
-    /**
-     * 数组::new 引用数组构造器
-     */
-    @Test
-    public void test5() {
-        Function<Integer, String[]> fun = len -> {
-            return new String[len];
-        };
-        String[] arr1 = fun.apply(10);
-        System.out.println(arr1 + "， " + arr1.length);
-
-        Function<Integer, String[]> fun2 = String[]::new;
-        String[] arr2 = fun2.apply(5);
-        System.out.println(arr2 + "， " + arr2.length);
-    }
 }
