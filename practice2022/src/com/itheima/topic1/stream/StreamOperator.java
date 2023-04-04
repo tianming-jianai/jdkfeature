@@ -3,10 +3,16 @@ package com.itheima.topic1.stream;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -26,6 +32,15 @@ import java.util.stream.Stream;
  *      1. Stream只能操作一次
  *      2. Stream方法返回的是新的流
  *      3. Stream不调用终结方法，中间的操作不会执行
+ *
+ * 收集Stream流中的结果
+ *      1. 到集合中：Collectors.toList()、Collectors.toSet()、Collectors.toCollection()
+ *      2. 到数组中：toArray()、toArray(int[]::new)
+ * 聚合计算：
+ *      Collectors.maxBy、Collectors.minBy、Collectors.counting、Collectors.summingInt、Collectors.averagingInt
+ * 分组：Collectors.groupingBy
+ * 分区：Collectors.partitionBy
+ * 拼接：Collectors.joining
  */
 public class StreamOperator {
 
@@ -206,6 +221,193 @@ public class StreamOperator {
                     }
                 }).reduce(0, Integer::sum);
         System.out.println(count);
+    }
+
+    /**
+     * 将Stream流中的Integer转换成int类型
+     */
+    @Test
+    public void testMapToInt() {
+        // Integer占用的内存比int多，在stream流操作中会自动装箱和拆箱
+        Stream<Integer> stream = Arrays.stream(new Integer[]{1, 2, 3, 4, 5});
+        // Integer reduce = stream.filter(i -> i > 3).reduce(0, Integer::sum);
+        // System.out.println(reduce);
+
+        int reduce = stream.mapToInt(Integer::intValue).filter(i -> i > 3).reduce(0, Integer::sum);
+        System.out.println(reduce);
+
+        // 将IntStream转换为Stream<Integer>
+        IntStream intStream = IntStream.rangeClosed(1, 10);
+        Stream<Integer> boxed = intStream.boxed();
+        boxed.forEach(s -> System.out.println(s.getClass() + ", " + s));
+    }
+
+    /**
+     * 如果有两个流，希望合并成为一个流，那么可以使用Stream接口的静态方法concat
+     */
+    @Test
+    public void testConcat() {
+        Stream<String> streamA = Stream.of("张三");
+        Stream<String> streamB = Stream.of("李四");
+        Stream<String> result = Stream.concat(streamA, streamB);
+        result.forEach(System.out::println);
+    }
+
+    /**
+     * 综合案例
+     */
+    @Test
+    public void testComprehensiveCase() {
+        List<String> one = List.of("迪丽热巴", "宋远桥", "苏星河", "老子", "庄子", "孙子", "洪七公");
+        List<String> two = List.of("古力娜扎", "张无忌", "张三丰", "赵丽颖", "张二狗", "张天爱", "张三");
+
+        Stream<String> one3 = one.stream().filter(s -> s.length() >= 3).limit(3);
+        Stream<String> twoZhang = two.stream().filter(s -> s.startsWith("张")).skip(2);
+        Stream<String> concat = Stream.concat(one3, twoZhang);
+        concat.map(Person::new).forEach(System.out::println);
+    }
+
+    /**
+     * Stream流中的结果到集合中
+     */
+    @Test
+    public void testStreamToCollection() {
+        Stream<String> stream = Stream.of("aa", "bb", "cc");
+        // List<String> list = stream.collect(Collectors.toList());
+        // Set<String> set = stream.collect(Collectors.toSet());
+
+        // ArrayList<String> arrayList = stream.collect(Collectors.toCollection(ArrayList::new));
+        HashSet<String> hashSet = stream.collect(Collectors.toCollection(HashSet::new));
+    }
+
+    /**
+     * Stream流中的结果到数组中
+     */
+    @Test
+    public void testStreamToArray() {
+        Stream<String> stream = Stream.of("aa", "bb", "cc");
+        // Object[] objects = stream.toArray();
+        // for (Object object : objects) {
+        //     System.out.println(object);
+        // }
+
+        String[] strings = stream.toArray(String[]::new);
+        for (String str : strings) {
+            System.out.println(str);
+        }
+    }
+
+    /**
+     * 对流中数据进行聚合计算
+     * 当我们使用Stream流处理数据后，可以像数据库的聚合函数一样对某个字段进行操作。比如获取最大值，获取最小值，求总和
+     */
+    @Test
+    public void testStreamToOther() {
+        Stream<Student> studentStream = Stream.of(
+                new Student("赵丽颖", 58, 95),
+                new Student("杨颖", 56, 88),
+                new Student("迪丽热巴", 56, 99),
+                new Student("柳岩", 52, 77));
+        // 获取最大值
+        // Optional<Student> collect = studentStream.collect(Collectors.maxBy((o1, o2) -> o1.getScore() - o2.getScore()));
+        // System.out.println(collect.get());
+
+        // 获取最小值
+        // Optional<Student> collect1 = studentStream.collect(Collectors.minBy((o1, o2) -> o1.getScore() - o2.getScore()));
+        // System.out.println(collect1.get());
+
+        // 求总和
+        // Integer sumAge = studentStream.collect(Collectors.summingInt(s -> s.getAge()));
+        // System.out.println(sumAge);
+
+        // 平均值
+        // Double avgScore = studentStream.collect(Collectors.averagingInt(s -> s.getScore()));
+        // System.out.println(avgScore);
+
+        // 统计数量
+        Long count = studentStream.collect(Collectors.counting());
+        System.out.println(count);
+    }
+
+    /**
+     * 对流中数据进行分组
+     */
+    @Test
+    public void testGroup() {
+        Stream<Student> studentStream = Stream.of(
+                new Student("赵丽颖", 58, 95),
+                new Student("杨颖", 56, 88),
+                new Student("迪丽热巴", 56, 99),
+                new Student("柳岩", 52, 50));
+        // Map<Integer, List<Student>> listMap = studentStream.collect(Collectors.groupingBy(Student::getAge));
+        // listMap.forEach((k, v) -> System.out.println(k + " ：： " + v));
+
+        // 将分数大于60的分为一组，小于60分成另一组
+        Map<String, List<Student>> listMap = studentStream.collect(Collectors.groupingBy(s -> {
+            if (s.getScore() > 60) {
+                return "及格";
+            } else {
+                return "不及格";
+            }
+        }));
+        listMap.forEach((k, v) -> System.out.println(k + " ：： " + v));
+    }
+
+    /**
+     * 对流中数据间多级分组
+     */
+    @Test
+    public void testCustomGroup() {
+        Stream<Student> studentStream = Stream.of(
+                new Student("赵丽颖", 58, 95),
+                new Student("杨颖", 56, 88),
+                new Student("迪丽热巴", 56, 99),
+                new Student("柳岩", 52, 50));
+        Map<Integer, Map<String, List<Student>>> map = studentStream.collect(Collectors.groupingBy(s -> s.getAge(), Collectors.groupingBy(s -> {
+            if (s.getScore() >= 90) {
+                return "优秀";
+            } else if (s.getScore() >= 80 && s.getScore() < 90) {
+                return "良好";
+            } else if (s.getScore() >= 70 && s.getScore() < 80) {
+                return "及格";
+            } else {
+                return "不及格";
+            }
+        })));
+
+        map.forEach((k, v) -> {
+            System.out.println(k + " == " + v);
+        });
+    }
+
+    /**
+     * 对流中数据进行分区
+     */
+    @Test
+    public void testPartition() {
+        Stream<Student> studentStream = Stream.of(
+                new Student("赵丽颖", 58, 95),
+                new Student("杨颖", 56, 88),
+                new Student("迪丽热巴", 56, 99),
+                new Student("柳岩", 52, 50));
+        Map<Boolean, List<Student>> map = studentStream.collect(Collectors.partitioningBy(s -> s.getScore() > 90));
+        map.forEach((k, v) -> {
+            System.out.println(k + " == " + v);
+        });
+    }
+
+    /**
+     * 对流中数据进行拼接
+     */
+    @Test
+    public void testJoining() {
+        Stream<Student> studentStream = Stream.of(
+                new Student("赵丽颖", 58, 95),
+                new Student("杨颖", 56, 88),
+                new Student("迪丽热巴", 56, 99),
+                new Student("柳岩", 52, 50));
+        String collect = studentStream.map(Student::getName).collect(Collectors.joining(">_<", "^_^", "^v^"));
+        System.out.println(collect);
     }
 }
 
